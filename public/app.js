@@ -55,7 +55,6 @@ function appendPmLine(line) {
   box.scrollTop(box[0].scrollHeight);
 }
 
-/* ---------- LOAD PRIVATE HISTORY (NEW) ---------- */
 async function loadPrivateHistory(withUser) {
   if (!withUser) return;
 
@@ -77,7 +76,6 @@ async function loadPrivateHistory(withUser) {
     appendPmLine(`<strong>[${t}] ${direction}:</strong> ${escapeHtml(m.message)}`);
   });
 }
-/* ----------------------------------------------- */
 
 // Register on socket
 socket.on("connect", () => {
@@ -178,7 +176,7 @@ $("#pmText").on("keypress", (e) => {
   if (e.key === "Enter") sendPrivateMessage();
 });
 
-/* ---------- LOAD HISTORY WHEN USERNAME ENTERED (NEW) ---------- */
+
 $("#pmTo").on("input", () => {
   const withUser = $("#pmTo").val().trim();
   clearTimeout(pmLoadTimer);
@@ -186,7 +184,7 @@ $("#pmTo").on("input", () => {
     if (withUser) loadPrivateHistory(withUser);
   }, 400);
 });
-/* -------------------------------------------------------------- */
+
 
 function sendPrivateMessage() {
   const to_user = $("#pmTo").val().trim();
