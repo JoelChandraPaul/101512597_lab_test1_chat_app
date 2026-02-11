@@ -25,6 +25,7 @@ const socket = io();
 let currentRoom = null;
 let roomTypingTimer = null;
 let pmTypingTimer = null;
+let pmLoadTimer = null;
 
 function showTopMsg(text) {
   const el = $("#topMsg");
@@ -54,8 +55,34 @@ function appendPmLine(line) {
   box.scrollTop(box[0].scrollHeight);
 }
 
+/* ---------- LOAD PRIVATE HISTORY (NEW) ---------- */
+async function loadPrivateHistory(withUser) {
+  if (!withUser) return;
+
+  $("#pmBox").empty();
+
+  const res = await fetch(
+    `/api/messages/private?user=${encodeURIComponent(username)}&withUser=${encodeURIComponent(withUser)}`
+  );
+
+  const data = await res.json();
+  if (!data.ok) return;
+
+  data.messages.forEach((m) => {
+    const t = new Date(m.date_sent).toLocaleTimeString();
+    const direction = (m.from_user === username)
+      ? "To " + m.to_user
+      : "From " + m.from_user;
+
+    appendPmLine(`<strong>[${t}] ${direction}:</strong> ${escapeHtml(m.message)}`);
+  });
+}
+/* ----------------------------------------------- */
+
 // Register on socket
-socket.emit("registerUser", { username });
+socket.on("connect", () => {
+  socket.emit("registerUser", { username });
+});
 
 // Rooms list from server
 socket.on("roomsList", (rooms) => {
@@ -151,6 +178,16 @@ $("#pmText").on("keypress", (e) => {
   if (e.key === "Enter") sendPrivateMessage();
 });
 
+/* ---------- LOAD HISTORY WHEN USERNAME ENTERED (NEW) ---------- */
+$("#pmTo").on("input", () => {
+  const withUser = $("#pmTo").val().trim();
+  clearTimeout(pmLoadTimer);
+  pmLoadTimer = setTimeout(() => {
+    if (withUser) loadPrivateHistory(withUser);
+  }, 400);
+});
+/* -------------------------------------------------------------- */
+
 function sendPrivateMessage() {
   const to_user = $("#pmTo").val().trim();
   const message = $("#pmText").val().trim();
@@ -160,12 +197,17 @@ function sendPrivateMessage() {
   socket.emit("privateMessage", { to_user, message });
   $("#pmText").val("");
   socket.emit("privateTypingStop", { to_user });
+
+  loadPrivateHistory(to_user); // refresh after sending
 }
 
-// Receive private message
+// Receive private message (live)
 socket.on("privateMessage", (m) => {
   const t = new Date(m.date_sent).toLocaleTimeString();
-  const direction = (m.from_user === username) ? "To " + m.to_user : "From " + m.from_user;
+  const direction = (m.from_user === username)
+    ? "To " + m.to_user
+    : "From " + m.from_user;
+
   appendPmLine(`<strong>[${t}] ${direction}:</strong> ${escapeHtml(m.message)}`);
 });
 

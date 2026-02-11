@@ -9,6 +9,8 @@ const authRoutes = require("./routes/auth");
 const User = require("./models/User");
 const GroupMessage = require("./models/GroupMessage");
 const PrivateMessage = require("./models/PrivateMessage");
+const messageRoutes = require("./routes/messages");
+
 
 const app = express();
 const server = http.createServer(app);
@@ -21,6 +23,8 @@ app.use("/public", express.static(path.join(__dirname, "public")));
 
 // api
 app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
+
 
 // pages
 app.get("/", (req, res) => res.redirect("/login"));
