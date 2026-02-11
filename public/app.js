@@ -89,6 +89,11 @@ socket.on("roomHistory", (messages) => {
 
 // Leave room
 $("#leaveBtn").on("click", () => {
+  currentRoom = null;
+  $("#currentRoom").text("");
+  $("#leaveBtn").prop("disabled", true);
+  $("#roomTyping").text("");
+  $("#chatBox").empty();
   socket.emit("leaveRoom");
 });
 
@@ -97,6 +102,7 @@ socket.on("leftRoom", ({ room }) => {
   $("#currentRoom").text("");
   $("#leaveBtn").prop("disabled", true);
   $("#roomTyping").text("");
+  $("#chatBox").empty();
   showTopMsg(`Left room: ${room}`);
 });
 
